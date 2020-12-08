@@ -107,7 +107,7 @@ module.exports = {
               // presets 的执行顺序和 use 一样，是从下往上，先 @babel/preset-react，再 @babel/preset-env
               ['@babel/preset-env', {
                 // @babel/polyfill 向浏览器全局变量注入对象和方法时，根据业务代码中使用到的添加，而不是全部添加。
-                // useBuiltIns 的值默认为 false，设为 usage 或 entry 时，会自动将业务代码 polyfill，而无需在需要使用的源文件顶部引入。
+                // useBuiltIns 的值默认为 false，设为 usage 或 entry 时，会自动在需要的文件中引入 polyfill，而无需手动在源文件顶部引入。
                 useBuiltIns: 'usage',
                 // 指定项目需要支持的浏览器，及支持到的最低版本，@babel/preset-env 会检查指定版本号及以上的浏览器对 es6 语法的支持度，如果已经支持的很好了，则不使用 @babel/preset-env 和 @babel/polyfill 进行转义
                 // targets: {
