@@ -2,6 +2,7 @@
   "name": "webpack-study",
   "version": "1.0.0",
   "description": "",
+  "sideEffects": false,
   "scripts": {
     "wp": "webpack",
     "wt": "webpack --watch",
