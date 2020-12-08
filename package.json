@@ -1,0 +1,49 @@
+{
+  "name": "webpack-study",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "wp": "webpack",
+    "wt": "webpack --watch",
+    "dev": "webpack-dev-server",
+    "server": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ttc0702/webpack-study.git"
+  },
+  "author": "Neo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ttc0702/webpack-study/issues"
+  },
+  "homepage": "https://github.com/ttc0702/webpack-study#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.0.4",
+    "clean-webpack-plugin": "^3.0.0",
+    "css-loader": "^3.3.0",
+    "express": "^4.17.1",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^4.5.0",
+    "node-sass": "^5.0.0",
+    "postcss": "^8.1.10",
+    "postcss-loader": "^4.1.0",
+    "postcss-preset-env": "^6.7.0",
+    "sass": "^1.29.0",
+    "sass-loader": "^10.1.0",
+    "style-loader": "^1.0.0",
+    "url-loader": "^4.1.1",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-middleware": "^4.0.2",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "browserslist": [
+    "defaults",
+    "not ie < 8",
+    "last 2 versions",
+    "> 1%",
+    "iOS 7",
+    "last 3 iOS versions"
+  ]
+}
