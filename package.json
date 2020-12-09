@@ -6,7 +6,8 @@
   "scripts": {
     "wp": "webpack",
     "wt": "webpack --watch",
-    "dev": "webpack-dev-server",
+    "dev": "webpack-dev-server --config ./build/webpack.dev.js",
+    "build": "webpack --config ./build/webpack.prod.js",
     "server": "node server.js"
   },
   "repository": {
@@ -42,7 +43,8 @@
     "webpack": "^4.44.2",
     "webpack-cli": "^3.1.2",
     "webpack-dev-middleware": "^4.0.2",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-dev-server": "^3.11.0",
+    "webpack-merge": "^5.4.1"
   },
   "browserslist": [
     "defaults",
@@ -56,6 +58,7 @@
     "@babel/polyfill": "^7.12.1",
     "@babel/runtime": "^7.12.5",
     "@babel/runtime-corejs3": "^7.12.5",
+    "lodash": "^4.17.20",
     "react": "^17.0.1",
     "react-dom": "^17.0.1"
   }

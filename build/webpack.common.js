@@ -1,37 +1,17 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const webpack = require('webpack')
 
 module.exports = {
-  // mode 默认为 production，打包完的代码是被压缩过的，可选 development
-  mode: 'production',
   // entry: './src/index.js',
   entry: {
     main: './src/index.js',
     // sub: './src/index.js',
   },
-  devtool: 'none',
-  // devtool: 'cheap-module-eval-source-map',
-  // devtool: 'cheap-module-source-map',
-  devServer: {
-    contentBase: './dist',
-    port: 8090,
-    // 自动打开浏览器
-    open: true,
-    proxy: {
-      'api': 'http://test.cn'
-    },
-    // 开启 Hot Module Replacement，热模块更新
-    hot: true,
-    // 即使 HMR 没有生效，也不让浏览器自动刷新（默认没有生效会自动刷新）
-    // 宜在写 css 时打开，写 js 时建议关闭
-    // hotOnly: true
-  },
   output: {
     // filename: 'bundle.js',
     filename: '[name].js',
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, '../dist'),
     // 表示所有打包成的文件之间的引用前，都加一个路径
     // 如果需要引入上传到 cdn 的 js 文件，需要在 html 文件中引入的 js 文件地址前加上 cdn 前缀。
     // publicPath: 'https://cdn.com'
@@ -115,9 +95,5 @@ module.exports = {
     }),
     // clean-webpack-plugin 会在打包之前，删除 dist 目录
     new CleanWebpackPlugin(),
-    new webpack.HotModuleReplacementPlugin()
   ],
-  // optimization: {
-  //   usedExports: true
-  // }
 }
