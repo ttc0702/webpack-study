@@ -1,6 +1,6 @@
-import { add } from './math.js'
+import { add, test } from './math.js'
 import _ from 'lodash'
 
 add(1, 3)
 console.dir(_)
-console.log(_.join(['a', 'b', 'c'], '*'))
+// console.log(_.join(['a', 'b', 'c'], '*'))
