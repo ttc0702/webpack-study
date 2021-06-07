@@ -24,11 +24,17 @@ webpack 是基于项目的。
 
 
 
+安装 webapck 同时必须安装 webpack-cli，webpack-cli 提供了一组命令，用来帮助开发者在运行 webpack 时快速地加入一些自定义设置。
+
+
+
 ### 命令
 
 ### 使用方法
 
 1. 命令行直接执行：
+
+   如果没有全局安装 webpack，则无法直接在命令行中运行 `webpack`，需要运行 `npx webpack`
 
    ```bash
    npx webpack [entry_path] [-o output_name] [--config config_path]
@@ -73,8 +79,6 @@ webpack 是基于项目的。
 
    
 
-
-
 ### webpack.config.js
 
 ```js
@@ -91,6 +95,8 @@ module.exports = {
 ```
 
 webpack 中带 s 的选项都是数组，如 plugins。
+
+
 
 # webpack-dev-server
 
@@ -111,7 +117,15 @@ module.exports = {
 };
 ```
 
+
+
 ### Hot Module Replacement
+
+热模块更新是指当我们对代码修改并保存后，webpack 将会对修改的代码进行重新打包，并将新的模块发送到浏览器端，浏览器用新的模块替换掉旧的模块，以实现在不刷新浏览器的前提下更新页面。
+
+相对于 `live reload` 刷新页面的方案，HMR 的优点在于可以保存应用的状态，提高了开发效率。
+
+热模块更新可以使 webpack 在 css 文件改变时，不刷新浏览器，直接更新页面。
 
 ```js
 const webpack = require('webpack')
@@ -124,6 +138,7 @@ module.exports = {
     // 开启 Hot Module Replacement，热模块更新
     hot: true,
     // 即使 HMR 没有生效，也不让浏览器自动刷新
+    // 宜在写 css 时打开，写 js 时建议关闭
     hotOnly: true
   },
   plugins: [
@@ -131,6 +146,8 @@ module.exports = {
   ]
 };
 ```
+
+
 
 js 文件的 HMR，number 模块的代码更新，可以不影响 counter 模块，独立刷新。
 
@@ -151,7 +168,9 @@ if (module.hot) {
 }
 ```
 
-配置完成后，css 的 HMR 可以自动生效，是因为 style-loader、vue-loader（vue）、babel-preset（react）中,帮我们实现了监听文件变化，更新页面的回调
+配置完成后，css 的 HMR 可以自动生效，是因为 css-loader、vue-loader（vue）、babel-preset（react）中,帮我们实现了监听文件变化，更新页面的回调。
+
+
 
 # entry
 
@@ -167,6 +186,8 @@ module.exports = {
 }
 ```
 
+
+
 # output
 
 ```js
@@ -180,6 +201,8 @@ module.exports = {
   },
 }
 ```
+
+
 
 # sourceMap
 
@@ -206,6 +229,8 @@ module.exports = {
 # loader
 
 webpack 默认只能打包处理 js 类型的文件，无法处理其它的非 js 类型的文件，如果要处理非 js 类型的文件，需要手动安装一些对应的第三方 loader 加载器。
+
+
 
 ### 文件
 
@@ -293,6 +318,8 @@ module.exports = {
 }
 ```
 
+
+
 ### 逻辑
 
 babel-loader：只是 webpack 和 babel 间通信的桥梁，它并不会将 js 代码中的 es6 语法翻译成 es5。
@@ -377,6 +404,8 @@ module.exports = {
 
 plugins 可以在 webpack 运行到某些时刻时，帮我们执行一些任务。
 
+
+
 ### html-webpack-plugin
 
 会在打包结束后，自动生成一个 html 文件，并把打包生成的 js 文件自动引入到这个 html 文件中。
@@ -447,6 +476,8 @@ packjson.json：防止引入的模块中，没有导出任何内容的模块被�
   "sideEffects": false
 }
 ```
+
+
 
 # mode
 
