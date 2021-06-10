@@ -1,21 +1,14 @@
-const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+// const webpack = require('webpack')
 
-module.exports = {
+const configs = {
+// module.exports = {
   // entry: './src/index.js',
   entry: {
-    main: './src/index.js',
-    // sub: './src/index.js',
-  },
-  output: {
-    // filename: 'bundle.js',
-    filename: '[name].js',
-    path: path.resolve(__dirname, '../dist'),
-    // 表示所有打包成的文件之间的引用前，都加一个路径
-    // 如果需要引入上传到 cdn 的 js 文件，需要在 html 文件中引入的 js 文件地址前加上 cdn 前缀。
-    // publicPath: 'https://cdn.com'
-    // publicPath: '/'
+    // lodash: './src/lodash.js',
+    list: './src/list.js',
+    index: './src/index.js',
   },
   module: {
     rules: [
@@ -41,34 +34,6 @@ module.exports = {
         }
       },
       {
-        test: /\.(css)$/i,
-        // css-loader 可以分析出 css 文件之间的关系（如在 css 文件中，通过 @import 引入其他 css 文件而形成的依赖关系），最终将所有 css 文件合并成一段 css。
-        // style-loader 可以将 css-loader 生成的 css 内容挂载到页面的 head 标签中。
-        use: ['style-loader', 'css-loader']
-      },
-      {
-        test: /\.(scss)$/i,
-        // sass-loader 可以将 sass 的代码转译成 css
-        // loader 的执行顺序是从右到左，从下到上，先 sass-loader，再 css-loader，最后 style-loader
-        use: [
-          'style-loader',
-          // 'css-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              // 在 scss 文件中引入 scss 文件，被引入的文件在引入前，也会走前两个 loader
-              // 保证所有 scss 都被全部编译
-              importLoaders: 2,
-              // 开启 css module,，避免样式污染
-              // modules: true
-            }
-          },
-          'sass-loader',
-          // 结合 postcss-preset-env 或 autoprefixer，可以补充样式的厂商前缀，postcss-preset-env 是 autoprefixer 的超集
-          'postcss-loader'
-        ]
-      },
-      {
         test: /\.(woff|woff2|eot|ttf|otf|svg)$/i,
         use: {
           loader: 'file-loader',
@@ -79,21 +44,71 @@ module.exports = {
         }
       },
       {
-        test: /\.m?js$/,
+        // test: /\.m?js$/,
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-        }
+        use: [
+          "babel-loader",
+          "eslint-loader"
+        ]
       },
     ]
   },
   // plugins 可以在 webpack 运行到某些时刻时，帮我们执行一些任务
   plugins: [
     // html-webpack-plugin 会在打包结束后，自动生成一个 html 文件，并把打包生成的 js 文件自动引入到这个 html 文件中。
-    new HtmlWebpackPlugin({
-      template: 'src/index.html'
-    }),
+    // new HtmlWebpackPlugin({
+    //   template: 'src/index.html',
+    //   filename: 'index.html',
+    //   chunks: ['vendors', 'main'],
+    // }),
+    // new HtmlWebpackPlugin({
+    //   template: 'src/index.html',
+    //   filename: 'list.html',
+    //   chunks: ['vendors', 'list'],
+    // }),
     // clean-webpack-plugin 会在打包之前，删除 dist 目录
-    new CleanWebpackPlugin(),
+    // new CleanWebpackPlugin({
+    //   // verbose: true
+    // }),
+    // new webpack.ProvidePlugin({
+    //   // 当发现一个模块中使用了 _ 时，自动在该模块中引入 lodash，并命名为 _
+    //   _: 'lodash'
+    // })
   ],
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        vendors: {
+          test: /[\\/]node_modules[\\/]/,
+          priority: -10,
+          name: 'vendors',
+          // filename: 'vendors.js',
+        },
+        default: false
+      }
+    },
+  },
+  // 关闭文件大小限制的控制台提醒
+  performance: false,
 }
+
+configs.plugins = addPlugins(configs)
+
+function addPlugins(configs) {
+  const plugins = [new CleanWebpackPlugin({})]
+  Object.keys(configs.entry).forEach(entry => {
+    plugins.push(
+      new HtmlWebpackPlugin({
+        template: 'src/index.html',
+        filename: `${entry}.html`,
+        chunks: ['vendors', entry],
+      }),
+    )
+  })
+
+  return plugins
+}
+
+module.exports = configs
