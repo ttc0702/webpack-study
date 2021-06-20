@@ -8,6 +8,7 @@ module.exports = {
     "eslint:recommended",
     "plugin:react/recommended"
   ],
+  "parser": 'babel-eslint',
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
@@ -15,6 +16,9 @@ module.exports = {
     "ecmaVersion": 12,
     "sourceType": 'module'
   },
+  "settings": {
+		"react": { "version": "detect" }
+	},
   "plugins": [
     "react"
   ],
@@ -24,5 +28,6 @@ module.exports = {
   },
   "rules": {
     'no-undef': 0,
+		'no-debugger': 0
   }
 };

@@ -200,6 +200,8 @@ const devConfig = {
 }
 ```
 
+
+
 ### 单页应用路由
 
 使用 historyApiFallback，只能解决单页应用在开发环境中使用 devServer 时的路由问题，并没有解决线上环境的路由问题，此时需要后端在 nginx 或 apache 上进行同样的配置。
@@ -1019,4 +1021,291 @@ module.exports = configs
 
 
 
+
+# 原理
+
+### Loader
+
+loader 本质上就是一个函数
+
+```js
+// webpack.config.js
+const path = require('path')
+
+module.exports = {
+  resolveLoader: {
+    modules: ['node_modules', 'loaders']
+  },
+  module: {
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        use: [
+          {
+            // loader: path.resolve(__dirname, 'loaders/replaceLoader'),
+            loader: 'replaceLoader',
+            options: {
+              name: 'Neo'
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+this.query.name
+
+```js
+// replaceLoader.js
+module.exports = function (source) {
+  // 可以通过 this.query 获取 webpack.config.js 中的 options
+  return source.replace('hello', `${this.query.name} change the`)
+}
+```
+
+loaderUtils
+
+```js
+// replaceLoader.js
+const loaderUtils = require('loader-utils')
+
+module.exports = function (source) {
+  // 也可以通过 loaderUtils 获取 options
+  const options = loaderUtils.getOptions(this)
+  return source.replace('hello', `${options.name} change the`)
+}
+```
+
+this.callback()
+
+```js
+// replaceLoader.js
+const loaderUtils = require('loader-utils')
+
+module.exports = function (source) {
+  const options = loaderUtils.getOptions(this)
+  const res = source.replace('hello', `${options.name} change the`)
+  this.callback(null, res)
+  // this.callback 相当于 return，但是可以向外传递更多的信息
+  // this.callback(
+  //   err: Error | null,
+  //   content: string | Buffer,
+  //   sourceMap?: SourceMap,
+  //   meta?: any
+  // );
+}
+```
+
+this.async()
+
+```js
+// replaceLoader.js
+const loaderUtils = require('loader-utils')
+
+module.exports = function (source) {
+  const options = loaderUtils.getOptions(this)
+  // 异步
+  const callback = this.async()
+  setTimeout(() => {
+    const res = source.replace('hello', `${options.name} change the`)
+    callback(null, res)
+  }, 1000)
+}
+```
+
+
+
+自定义 loader 可以帮助我们对源代码做一些业务处理：
+
+1. 前端异常监控，需要对代码做异常捕获，加 try catch，逐个修改函数很麻烦，可以在 loader 中通过抽象语法树对业务代码做异常分析，
+
+```js
+// function() {} => try{function() {}} catch(e){}
+```
+
+2. 国际化，将中英文都可能用到的文本用占位符代替，在 loader 中结合 node 全局变量进行替换
+
+```js
+module.exports = function (source) {
+  if(Node === 'ch') {
+    source.replace('{{title}}', '中文')
+  } else {
+    source.replace('{{title}}', 'english title')
+  }
+}
+```
+
+
+
+### Plugin
+
+Plugin 本质上是一个类
+
+```js
+// webpack.config.js
+const CopyrightWebpackPlugin = require('./plugins/copyright-webpack.plugin')
+
+module.exports = {
+  plugins: [
+    new CopyrightWebpackPlugin({
+      name: 'Neo'
+    })
+  ]
+}
+```
+
+```js
+// copyright-webpack-plugin.js
+class CopyrightWebpackPlugin {
+  constructor(options) {
+    console.log(options)
+  }
+
+  // compiler 中存放了打包的所有相关内容
+  apply(compiler) {
+    // compilation 中存放了本次打包的相关内容
+    // 异步钩子 emit：将打包好的文件放入目标文件夹之前的时刻
+    compiler.hooks.emit.tapAsync('CopyrightWebpackPlugin', (compilation, cb) => {
+      debugger
+      compilation.assets['copyright.txt'] = {
+        source: () => {
+          return 'copyright by Neo'
+        },
+        size: () => {
+          return 16
+        }
+      }
+      cb()
+    })
+
+    // 同步钩子 compile
+    compiler.hooks.compile.tap('CopyrightWebpackPlugin', (compilation) => {
+
+    })
+  }
+}
+
+module.exports = CopyrightWebpackPlugin
+```
+
+##### node 调试
+
+```js
+// package.json
+{
+  "scripts": {
+    // inspect 表示开启 node 调试工具
+    // inspect-brk 表示调试时，在文件第一行上打一个端点
+    "debug": "node --inspect --inspect-brk node_modules/webpack/bin/webpack.js"
+  },
+}
+```
+
+
+
+### Bundler
+
+##### 模块分析
+
+```js
+const fs = require('fs')
+const path = require('path')
+const parser = require('@babel/parser')
+const traverse = require('@babel/traverse').default
+const babel = require('@babel/core')
+
+const moduleAnalyser = (filename) => {
+  const content = fs.readFileSync(filename, 'utf-8')
+  const ast = parser.parse(content, {
+    sourceType: 'module'
+  })
+  // ast.program.body 是一个数组，它存储了很多 Node 对象，每个对象对应源代码中的一行代码
+  // console.log(ast.program.body)
+  let dependencies = {}
+  // traverse 可以方便的提取 ast.program.body 中符合条件的 node
+  traverse(ast, {
+    ImportDeclaration({ node }) {
+      const dirname = path.dirname(filename)
+      console.log(dirname)
+      const newPath = path.join(dirname, node.source.value)
+      dependencies[node.source.value] = newPath
+    }
+  })
+
+  // 获取转换后的代码
+  const { code } = babel.transformFromAst(ast, null, {
+    presets: ['@babel/preset-env']
+  })
+
+  return {
+    filename,
+    dependencies,
+    code
+  }
+}
+```
+
+##### 依赖图谱
+
+```js
+const makeDependenciesGraph = entry => {
+  const entryModule = moduleAnalyser(entry)
+  const graphArr = [entryModule]
+  // for 循环结合 push() 递归处理 dependencies
+  for (let i = 0; i < graphArr.length; i++) {
+    const item = graphArr[i]
+    const { dependencies } = item
+    if (dependencies) {
+      for (let j in dependencies) {
+        graphArr.push(moduleAnalyser(dependencies[j]))
+      }
+    }
+  }
+
+  const graph = {}
+  graphArr.forEach(item => {
+    graph[item.filename] = {
+      dependencies: item.dependencies,
+      code: item.code
+    }
+  })
+  return graph
+}
+```
+
+##### 生成代码
+
+```js
+const generateCode = entry => {
+  const graph = JSON.stringify(makeDependenciesGraph(entry))
+  // 在闭包中执行代码，避免污染全局环境
+  // 注意加分号
+  return `
+    (function(graph){
+      function require(module) {
+        function localRequire(relativePath) {
+          return require(graph[module].dependencies[relativePath])
+        }
+        var exports = {};
+        (function(require, exports, code) {
+          eval(code)
+        })(localRequire, exports, graph[module].code)
+
+        return exports
+      }
+      require('${entry}')
+    })(${graph})
+  `
+}
+
+console.log(generateCode('src/index.js'))
+```
+
+
+
+
+
+# create-react-app
 
